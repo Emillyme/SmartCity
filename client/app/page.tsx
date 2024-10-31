@@ -7,7 +7,6 @@ import Login from "./(auth)/login";
 export default function Home() {
   return (
     <>
-      A Emilly é linda
       <Login />
     </>
   );
