@@ -16,9 +16,18 @@ def abre_index(request):
 class UserRegisterView(APIView):
     def post(self, request):
         serializer = UserRegisterSerializer(data=request.data)
+
         if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
+            user = serializer.save() # salva o usuario
+            access = AccessToken.for_user(user)
+            refresh = RefreshToken.for_user(user)
+
+            # Retorna o token de acesso e refresh
+            return Response({
+                    'message': "Usuário criado com sucesso",
+                    'access': str(access),
+                    'refresh': str(refresh)
+                }, status=status.HTTP_201_CREATED)        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserLoginView(APIView):
