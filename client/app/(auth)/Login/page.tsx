@@ -86,9 +86,11 @@ export default function Login() {
                                 <Checkbox id='remember' />
                                 <Label htmlFor='remember'>Mantenha-me conectado</Label>
                             </div>
-                            <a href="#" className='text-sm font-medium text-primary-600 hover:text-primary-500'>
-                                Esqueceu a senha?
-                            </a>
+                            <Link href="/ForgotPassword">
+                                <p className='text-sm font-medium text-primary-600 hover:text-primary-500'>
+                                        Esqueceu a senha?
+                                </p>
+                            </Link>
                         </div>
                         <Button className='w-full mt-6' type='submit'>
                             Entrar

@@ -7,6 +7,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.core.mail import send_mail
+from django.conf import settings
+from django.urls import reverse
+from django.contrib.auth.models import User
+from django.utils.encoding import force_str
 
 
 def abre_index(request):
@@ -52,3 +60,37 @@ class UserLoginView(APIView):
         else:
             # Usuário ou senha inválidos
             return Response({'error': 'Usuario ou senha inválidos'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+class PasswordResetRequestView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        user = User.objects.filter(email=email).first()
+
+        if user:
+            # Enviar email de reset de senha
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            reset_link = f"http://localhost:3000/PasswordReset/?uidb64={uid}&token={token}"  # Use a URL do seu frontend
+
+            send_mail(
+                'Redefinição de senha',
+                f'Por favor, clique no link para redefinir sua senha: {reset_link}',
+                settings.EMAIL_HOST_USER,
+                [email],
+                fail_silently=False
+            )
+            return Response({'message': 'Um link de redefinição de senha foi enviado para o seu email.'}, status=status.HTTP_200_OK)
+        return Response({'error': 'Email não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+    
+class PasswordResetConfirmView(APIView):
+    def post(self, request, uidb64, token):
+        new_password = request.data.get('new_password')
+        user_id = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=user_id)
+
+        if user and default_token_generator.check_token(user, token):
+            user.set_password(new_password)
+            user.save()
+            return Response({'message': 'Senha redefinida com sucesso!'}, status=status.HTTP_200_OK)
+        
+        return Response({'error': 'Token inválido ou expirado.'}, status=status.HTTP_400_BAD_REQUEST)
