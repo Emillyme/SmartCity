@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 """
 Django settings for server project.
 
@@ -40,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'server',
     'corsheaders',
+    'smartcity',
 ]
 
 MIDDLEWARE = [
@@ -145,3 +148,14 @@ EMAIL_HOST_USER = 'emillyrodriguesmellooo@gmail.com'  # Seu e-mail
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),  # Tempo de expiração do token de acesso (1 hora)
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Tempo de expiração do token de atualização (7 dias)
+    'ROTATE_REFRESH_TOKENS': False,  # Não rotaciona os tokens de atualização
+    'BLACKLIST_AFTER_ROTATION': False,  # Não coloca o token na lista negra após ser rotacionado
+    'ALGORITHM': 'HS256',  # Algoritmo de assinatura
+    'SIGNING_KEY': 'YOUR_SECRET_KEY',  # Chave secreta para assinar os tokens
+    'AUTH_HEADER_TYPES': ('Bearer',),  # Tipo do cabeçalho do token
+}

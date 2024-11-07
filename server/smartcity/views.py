@@ -16,6 +16,10 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.utils.encoding import force_str 
 from base64 import urlsafe_b64decode
+from rest_framework.permissions import IsAuthenticated
+
+from .models import Sensor
+from.serializers import SensorSerializer
 
 def abre_index(request):
     mensagem = "Hello world!"
@@ -105,3 +109,47 @@ class PasswordResetConfirmView(APIView):
             return Response({'message': 'Senha redefinida com sucesso!'}, status=status.HTTP_200_OK)
 
         return Response({'error': 'Token inválido ou expirado.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+# Para listar e criar sensores (GET e POST)
+# Classe para lidar com TODOS os sensores
+class SensorListView(APIView):
+    permission_classes = [IsAuthenticated]  # Exige que o usuário esteja autenticado
+    def get(self, request):
+        sensores = Sensor.objects.all()
+        serializer = SensorSerializer(sensores, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        serializer = SensorSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+# idar com operações de atualização (PUT) e exclusão (DELETE) de um sensor específico, identificado pelo seu ID.
+# Classe para lidar com sensor especificado por seu ID.
+class SensorDetailView(APIView):
+    permission_classes = [IsAuthenticated]  # Exige que o usuário esteja autenticado
+    def get_object(self, pk):
+        try:
+            return Sensor.objects.get(pk=pk)
+        except Sensor.DoesNotExist:
+            return None
+
+    def put(self, request, pk):
+        sensor = self.get_object(pk)
+        if sensor is None:
+            return Response({'error': 'Sensor não encontrado'}, status=status.HTTP_404_NOT_FOUND)
+            
+        serializer = SensorSerializer(sensor, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+    
+    def delete(self, request, pk):
+        sensor = self.get_object(pk)
+        if sensor is None:
+            return Response({'error': 'Sensor não encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+        sensor.delete()
+        return Response({'message': 'Sensor excluído com sucesso!'}, status=status.HTTP_204_NO_CONTENT)
