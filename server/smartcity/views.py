@@ -14,8 +14,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.urls import reverse
 from django.contrib.auth.models import User
-from django.utils.encoding import force_str
-
+from django.utils.encoding import force_str 
+from base64 import urlsafe_b64decode
 
 def abre_index(request):
     mensagem = "Hello world!"
@@ -85,12 +85,23 @@ class PasswordResetRequestView(APIView):
 class PasswordResetConfirmView(APIView):
     def post(self, request, uidb64, token):
         new_password = request.data.get('new_password')
-        user_id = force_text(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=user_id)
 
-        if user and default_token_generator.check_token(user, token):
+        # Adiciona padding ao uidb64, se necessário
+        try:
+            while len(uidb64) % 4 != 0:
+                uidb64 += "="
+            user_id = force_str(urlsafe_b64decode(uidb64))
+        except (TypeError, ValueError, binascii.Error):
+            return Response({'error': 'UID inválido.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'Usuário não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if default_token_generator.check_token(user, token):
             user.set_password(new_password)
             user.save()
             return Response({'message': 'Senha redefinida com sucesso!'}, status=status.HTTP_200_OK)
-        
+
         return Response({'error': 'Token inválido ou expirado.'}, status=status.HTTP_400_BAD_REQUEST)
