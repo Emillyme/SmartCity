@@ -17,6 +17,9 @@ from django.contrib.auth.models import User
 from django.utils.encoding import force_str 
 from base64 import urlsafe_b64decode
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import generics
+from .filters import SensorFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import Sensor
 from.serializers import SensorSerializer
@@ -112,7 +115,21 @@ class PasswordResetConfirmView(APIView):
     
 # Para listar e criar sensores (GET e POST)
 # Classe para lidar com TODOS os sensores
-class SensorListView(APIView):
+class SensorListView(generics.ListAPIView):
+    queryset = Sensor.objects.all()
+    serializer_class = SensorSerializer
+    filterset_class = SensorFilter  
+
+    def get_queryset(self):
+        queryset = Sensor.objects.all()
+
+        # Aplica o filtro se houver parâmetros na URL
+        if 'tipo' in self.request.query_params:
+            tipo = self.request.query_params.get('tipo')
+            queryset = queryset.filter(tipo=tipo)
+
+        return queryset
+        
     permission_classes = [IsAuthenticated]  # Exige que o usuário esteja autenticado
     def get(self, request):
         sensores = Sensor.objects.all()

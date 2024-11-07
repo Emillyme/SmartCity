@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'server',
     'corsheaders',
+    'django_filters',
     'smartcity',
 ]
 
