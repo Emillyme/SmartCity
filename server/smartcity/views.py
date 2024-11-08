@@ -20,9 +20,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
 from .filters import SensorFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
 
-from .models import Sensor
-from.serializers import SensorSerializer
+from .models import Sensor, TemperaturaData, UmidadeData, LuminosidadeData, ContadorData
+from.serializers import SensorSerializer, TemperaturaSerializer, UmidadeSerializer, LuminosidadeSerializer, ContadorSerializer
 
 def abre_index(request):
     mensagem = "Hello world!"
@@ -119,16 +120,7 @@ class SensorListView(generics.ListAPIView):
     queryset = Sensor.objects.all()
     serializer_class = SensorSerializer
     filterset_class = SensorFilter  
-
-    def get_queryset(self):
-        queryset = Sensor.objects.all()
-
-        # Aplica o filtro se houver parâmetros na URL
-        if 'tipo' in self.request.query_params:
-            tipo = self.request.query_params.get('tipo')
-            queryset = queryset.filter(tipo=tipo)
-
-        return queryset
+    filter_backends = [DjangoFilterBackend]
         
     permission_classes = [IsAuthenticated]  # Exige que o usuário esteja autenticado
     def get(self, request):
@@ -147,11 +139,15 @@ class SensorListView(generics.ListAPIView):
 # Classe para lidar com sensor especificado por seu ID.
 class SensorDetailView(APIView):
     permission_classes = [IsAuthenticated]  # Exige que o usuário esteja autenticado
+
     def get_object(self, pk):
-        try:
-            return Sensor.objects.get(pk=pk)
-        except Sensor.DoesNotExist:
-            return None
+        # Usa o get_object_or_404 para retornar 404 automaticamente se não encontrar
+        return get_object_or_404(Sensor, pk=pk)
+
+    def get(self, request, pk):
+        sensor = self.get_object(pk)
+        serializer = SensorSerializer(sensor)
+        return Response(serializer.data)
 
     def put(self, request, pk):
         sensor = self.get_object(pk)
@@ -168,5 +164,161 @@ class SensorDetailView(APIView):
         if sensor is None:
             return Response({'error': 'Sensor não encontrado'}, status=status.HTTP_404_NOT_FOUND)
         
+        sensor.delete()
+        return Response({'message': 'Sensor excluído com sucesso!'}, status=status.HTTP_204_NO_CONTENT)
+
+
+class TemperaturaView(APIView):
+    permission_classes = [IsAuthenticated]  # Exige que o usuário esteja autenticado
+    def get(self, request):
+        sensoresTemp = TemperaturaData.objects.all()
+        serializer = TemperaturaSerializer(sensoresTemp, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        serializer = TemperaturaSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class TemperaturaDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk):
+        return get_object_or_404(TemperaturaData, pk=pk)
+    
+    def get(self, request, pk):
+        sensor = self.get_object(pk)
+        serializer = TemperaturaSerializer(sensor)
+        return Response(serializer.data)
+    
+    def put(self, request, pk):
+        sensor = self.get_object(pk)
+        serializer = TemperaturaSerializer(sensor, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, pk):
+        sensor = self.get_object(pk)
+        sensor.delete()
+        return Response({'message': 'Sensor excluído com sucesso!'}, status=status.HTTP_204_NO_CONTENT)
+    
+class UmidadeView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        sensorUmidade = UmidadeData.objects.all()
+        serializer = UmidadeSerializer(sensorUmidade, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = UmidadeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UmidadeDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk):
+        return get_object_or_404(UmidadeData, pk=pk)
+
+    def get(self, request, pk):
+        sensor = self.get_object(pk)
+        serializer = UmidadeSerializer(sensor)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        sensor = self.get_object(pk)
+        serializer = UmidadeSerializer(sensor, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        sensor = self.get_object(pk)
+        sensor.delete()
+        return Response({'message': 'Sensor excluído com sucesso!'}, status=status.HTTP_204_NO_CONTENT)
+    
+class LuminosidadeView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        sensorLuminosidade = LuminosidadeData.objects.all()
+        serializer = LuminosidadeSerializer(sensorLuminosidade, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = LuminosidadeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class LuminosidadeDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk):
+        return get_object_or_404(LuminosidadeData, pk=pk)
+
+    def get(self, request, pk):
+        sensor = self.get_object(pk)
+        serializer = LuminosidadeSerializer(sensor)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        sensor = self.get_object(pk)
+        serializer = LuminosidadeSerializer(sensor, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        sensor = self.get_object(pk)
+        sensor.delete() 
+        return Response({'message': 'Sensor excluído com sucesso!'}, status=status.HTTP_204_NO_CONTENT)
+
+class ContadorView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        sensorContador = ContadorData.objects.all()
+        serializer = ContadorSerializer(sensorContador, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = ContadorSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ContadorDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, pk):
+        return get_object_or_404(ContadorData, pk=pk)
+
+    def get(self, request, pk):
+        sensor = self.get_object(pk)
+        serializer = ContadorSerializer(sensor)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        sensor = self.get_object(pk)
+        serializer = ContadorSerializer(sensor, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        sensor = self.get_object(pk)
         sensor.delete()
         return Response({'message': 'Sensor excluído com sucesso!'}, status=status.HTTP_204_NO_CONTENT)
