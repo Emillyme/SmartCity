@@ -7,12 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Eye, EyeOff} from 'lucide-react';
+import { useRouter } from 'next/navigation'; // Importa o hook useRouter
 import Link from 'next/link';
 
 export default function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);  
+    const [loading, setLoading] = useState(false);
+    const router = useRouter(); // Inicializa o hook useRouter
 
     async function handleLogin(e) {
         e.preventDefault();
@@ -30,6 +33,9 @@ export default function Login() {
             localStorage.setItem('accessToken', data.access); // Armazena o token de acesso
             localStorage.setItem('refreshToken', data.refresh); // Armazena o token de refresh
             console.log(data.access);
+
+            // Redireciona para a página Home após autenticação bem-sucedida
+            router.push('/Home');
         } else {
             alert('Credenciais inválidas');
             console.log(response);
@@ -92,8 +98,8 @@ export default function Login() {
                                 </p>
                             </Link>
                         </div>
-                        <Button className='w-full mt-6' type='submit'>
-                            Entrar
+                        <Button className="w-full mt-6" type="submit" disabled={loading}>
+                            {loading ? 'Carregando...' : 'Entrar'}
                         </Button>
                     </form>
                     <div className='flex items-center justify-center'>
