@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation" // Adicionei o hook useRouter para navegação
 import {
   BadgeCheck,
   Bell,
@@ -37,9 +38,10 @@ interface User {
 
 export function NavUser() {
   const { isMobile } = useSidebar()
-  const [user, setUser] = useState<User | null>(null) // Garantir que o estado seja inicializado corretamente
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const Router = useRouter() 
 
   useEffect(() => {
     async function fetchUser() {
@@ -83,6 +85,11 @@ export function NavUser() {
     return <div>{error}</div>
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem("acessToken")
+    Router.push('/Login')
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -123,17 +130,17 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">
                 <Settings />
                 Configurações
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">
                 <Bell />
                 Notificações
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
               <LogOut />
               Sair
             </DropdownMenuItem>
