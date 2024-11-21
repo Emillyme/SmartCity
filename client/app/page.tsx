@@ -5,7 +5,7 @@ import Register from "./(auth)/Register/page";
 
 // import { useRouter } from "next/navigation";
 
-export default function Home() {
+export default function Index() {
   return (
     <>
       <Login />

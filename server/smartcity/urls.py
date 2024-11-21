@@ -23,4 +23,5 @@ urlpatterns = [
     path('luminosidade/<int:pk>/', views.LuminosidadeDetailView.as_view(), name='luminosidade_detail'),
     path('contadores/', views.ContadorView.as_view(), name='contadores'),
     path('contadores/<int:pk>/', views.ContadorDetailView.as_view(), name='contadores_detail'),
+    path('get_user/', views.GetUser.as_view(), name='Dados Usuario'),
 ]

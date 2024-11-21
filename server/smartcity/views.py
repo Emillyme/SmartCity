@@ -23,12 +23,21 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 
 from .models import Sensor, TemperaturaData, UmidadeData, LuminosidadeData, ContadorData
-from.serializers import SensorSerializer, TemperaturaSerializer, UmidadeSerializer, LuminosidadeSerializer, ContadorSerializer
+from.serializers import SensorSerializer, TemperaturaSerializer, UmidadeSerializer, LuminosidadeSerializer, ContadorSerializer, UserSerializer
 
 def abre_index(request):
     mensagem = "Hello world!"
     return HttpResponse(mensagem)
 
+class GetUser(APIView):
+    permission_classes = [IsAuthenticated] 
+    
+    def get(self, request):
+        user = request.user 
+        
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
 class UserRegisterView(APIView):
     def post(self, request):
         serializer = UserRegisterSerializer(data=request.data)

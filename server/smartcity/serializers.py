@@ -17,6 +17,12 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         )
         return user
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["username", "email"]
+    
+
 class SensorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sensor

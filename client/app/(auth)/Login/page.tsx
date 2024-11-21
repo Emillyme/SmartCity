@@ -35,7 +35,7 @@ export default function Login() {
             console.log(data.access);
 
             // Redireciona para a página Home após autenticação bem-sucedida
-            router.push('/Home');
+            router.push('/dashboard');
         } else {
             alert('Credenciais inválidas');
             console.log(response);
