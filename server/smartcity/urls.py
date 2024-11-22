@@ -4,7 +4,7 @@ from .views import (
     UserRegisterView, UserLoginView, PasswordResetRequestView,
     PasswordResetConfirmView, SensorListView, SensorDetailView,
     TemperaturaView, TemperaturaDetailView, UmidadeView, UmidadeDetailView,
-    LuminosidadeView, LuminosidadeDetailView
+    LuminosidadeView, LuminosidadeDetailView, SensorUploadView
 )
 
 urlpatterns = [
@@ -24,4 +24,5 @@ urlpatterns = [
     path('contadores/', views.ContadorView.as_view(), name='contadores'),
     path('contadores/<int:pk>/', views.ContadorDetailView.as_view(), name='contadores_detail'),
     path('get_user/', views.GetUser.as_view(), name='Dados Usuario'),
+    path('upload/', views.SensorUploadView.as_view(), name='upload'),
 ]

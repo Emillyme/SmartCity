@@ -47,3 +47,17 @@ class ContadorData(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     def str (self):
         return f"Contador - {self.valor} - {self.timestamp}"
+    
+class SensorUpload(models.Model):
+    SENSOR_TYPES = [
+        ('Temperatura', 'Temperatura'),
+        ('Umidade', 'Umidade'),
+        ('Luminosidade', 'Luminosidade'),
+        ('Contador', 'Contador'),
+    ]
+    sensor_type = models.CharField(max_length=20, choices=SENSOR_TYPES)
+    csv_file = models.FileField(upload_to='uploads/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Sensor Upload - {self.sensor_type} - {self.uploaded_at}"

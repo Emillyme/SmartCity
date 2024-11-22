@@ -21,9 +21,10 @@ from rest_framework import generics
 from .filters import SensorFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
+from rest_framework.parsers import MultiPartParser, FormParser
 
-from .models import Sensor, TemperaturaData, UmidadeData, LuminosidadeData, ContadorData
-from.serializers import SensorSerializer, TemperaturaSerializer, UmidadeSerializer, LuminosidadeSerializer, ContadorSerializer, UserSerializer
+from .models import Sensor, SensorUpload,TemperaturaData, UmidadeData, LuminosidadeData, ContadorData
+from.serializers import  SensorUploadSerializer, SensorSerializer, TemperaturaSerializer, UmidadeSerializer, LuminosidadeSerializer, ContadorSerializer, UserSerializer
 
 def abre_index(request):
     mensagem = "Hello world!"
@@ -331,3 +332,18 @@ class ContadorDetailView(APIView):
         sensor = self.get_object(pk)
         sensor.delete()
         return Response({'message': 'Sensor excluído com sucesso!'}, status=status.HTTP_204_NO_CONTENT)
+
+class SensorUploadView(APIView):
+    # permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request, *args, **kwargs):
+        serializer = SensorUploadSerializer(data=request.data)
+        if serializer.is_valid():
+            # Salva os dados no banco
+            instance = serializer.save()
+
+            print(f"Sensor: {instance.sensor_type}, Arquivo: {instance.csv_file.name}")
+
+            return Response({"message": f"Upload realizado para o sensor {instance.sensor_type}!"}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

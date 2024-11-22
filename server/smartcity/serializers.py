@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Sensor, TemperaturaData, UmidadeData, LuminosidadeData, ContadorData
+from .models import Sensor, TemperaturaData, UmidadeData, LuminosidadeData, ContadorData, SensorUpload
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -46,4 +46,9 @@ class LuminosidadeSerializer(serializers.ModelSerializer):
 class ContadorSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContadorData
+        fields = '__all__'
+        
+class SensorUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SensorUpload
         fields = '__all__'
