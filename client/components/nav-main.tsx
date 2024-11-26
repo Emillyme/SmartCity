@@ -1,12 +1,15 @@
-"use client"
+"use client";
+
+import { Folder, Share, Trash2, type LucideIcon } from "lucide-react";
 
 import {
-  Folder,
-  Share,
-  Trash2,
-  type LucideIcon,
-} from "lucide-react"
-
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 import {
   DropdownMenu,
@@ -14,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 
 import {
   SidebarGroup,
@@ -27,28 +30,28 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { DotsHorizontalIcon } from "@radix-ui/react-icons"
+} from "@/components/ui/sidebar";
+import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import UploadComponent from "./upload";
 
 export function NavMain({
   items,
 }: {
   items: {
-    title: string
-    url: string
-    icon: LucideIcon
-    isActive?: boolean
+    title: string;
+    url: string;
+    icon: LucideIcon;
+    isActive?: boolean;
     items?: {
-      title: string
-      url: string
-    }[]
-  }[]
+      title: string;
+      url: string;
+    }[];
+  }[];
 }) {
-    
-  const { isMobile } = useSidebar()
-  
+  const { isMobile } = useSidebar();
+
   return (
-  <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+    <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
@@ -70,17 +73,18 @@ export function NavMain({
                 side={isMobile ? "bottom" : "right"}
                 align={isMobile ? "end" : "start"}
               >
-                <DropdownMenuItem className="cursor-pointer">
-                  <Share className="text-muted-foreground" />
-                  <span>Upload</span>
+                <DropdownMenuItem
+                  onSelect={(e) => e.preventDefault()}
+                  className="cursor-pointer"
+                >
+                  <UploadComponent/>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
         ))}
-        <SidebarMenuItem>
-        </SidebarMenuItem>
+        <SidebarMenuItem></SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }

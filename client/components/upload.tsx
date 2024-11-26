@@ -1,4 +1,5 @@
 "use client";
+import { Share } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -6,13 +7,13 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
   DialogTrigger,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import do Select
 
-
-export default function Upload() {
+function Upload() {
   const [file, setFile] = useState<File | null>(null);
   const [selectedSensor, setSelectedSensor] = useState<string>("");
 
@@ -23,43 +24,44 @@ export default function Upload() {
     }
   };
 
-  const handleSensorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedSensor(e.target.value);
-  };
-
   const handleUpload = async () => {
     if (!file || !selectedSensor) {
       alert("Por favor, selecione um arquivo e um sensor!");
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("sensor_type", selectedSensor);
     formData.append("csv_file", file);
+    console.log("FormData enviado:", formData);
 
     try {
       const response = await fetch("http://127.0.0.1:8000/api/upload/", {
         method: "POST",
+        // headers: {
+        //   Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        // },
         body: formData,
       });
-
+  
       if (response.ok) {
         alert("Upload realizado com sucesso!");
       } else {
-        alert("Erro no upload");
+        const data = await response.json();
+        alert(`Erro no upload: ${data.error || "Erro desconhecido"}`);
       }
     } catch (error) {
       console.error("Erro no upload:", error);
     }
   };
+  
 
   return (
     <>
       <Dialog>
-        <DialogTrigger>
-          <div className="mr-4">
-            <Button className="px-[30px]">Upload</Button>
-          </div>
+        <DialogTrigger className="flex items-center gap-2">
+          <Share className="text-muted-foreground w-5 " />
+          Upload
         </DialogTrigger>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
@@ -69,21 +71,19 @@ export default function Upload() {
             </DialogDescription>
           </DialogHeader>
 
-          {/* Seleção do tipo de sensor */}
           <div>
             <label htmlFor="sensor_type">Selecione o tipo de sensor:</label>
-            <select
-              id="sensor_type"
-              value={selectedSensor}
-              onChange={handleSensorChange}
-              className="block w-full p-2 mt-2"
-            >
-              <option value="">Selecione...</option>
-              <option value="Temperatura">Temperatura</option>
-              <option value="Umidade">Umidade</option>
-              <option value="Contador">Contador</option>
-              <option value="Luminosidade">Luminosidade</option>
-            </select>
+            <Select onValueChange={setSelectedSensor}>
+              <SelectTrigger className="w-full mt-2">
+                <SelectValue placeholder="Selecione o tipo de sensor" />
+              </SelectTrigger>
+              <SelectContent >
+                <SelectItem className="cursor-pointer" value="Temperatura">Temperatura</SelectItem>
+                <SelectItem className="cursor-pointer" value="Umidade">Umidade</SelectItem>
+                <SelectItem className="cursor-pointer" value="Contador">Contador</SelectItem>
+                <SelectItem className="cursor-pointer" value="Luminosidade">Luminosidade</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Seleção do arquivo CSV */}
@@ -105,3 +105,9 @@ export default function Upload() {
     </>
   );
 }
+
+function UploadComponent() {
+  return <Upload />;
+}
+
+export default UploadComponent;

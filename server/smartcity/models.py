@@ -23,13 +23,13 @@ class Sensor(models.Model):
     
 class TemperaturaData(models.Model):
     valor = models.FloatField()
-    sensor_id = models.ForeignKey(Sensor, on_delete=models.CASCADE)
+    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     def str (self):
         return f"Temperatura - {self.valor} Celsius - {self.timestamp}"
     
 class UmidadeData(models.Model):
-    sensor_id = models.ForeignKey(Sensor, on_delete=models.CASCADE)
+    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
     valor = models.FloatField()
     timestamp = models.DateTimeField(auto_now_add=True)
     def str (self):
@@ -37,13 +37,13 @@ class UmidadeData(models.Model):
 
 class LuminosidadeData(models.Model):
     valor = models.FloatField()
-    sensor_id = models.ForeignKey(Sensor, on_delete=models.CASCADE)
+    sensor= models.ForeignKey(Sensor, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     def str (self):
         return f"Luminosidade - {self.valor} % - {self.timestamp}"
     
 class ContadorData(models.Model):
-    sensor_id = models.ForeignKey(Sensor, on_delete=models.CASCADE)
+    sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     def str (self):
         return f"Contador - {self.valor} - {self.timestamp}"

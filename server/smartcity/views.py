@@ -334,16 +334,74 @@ class ContadorDetailView(APIView):
         return Response({'message': 'Sensor excluído com sucesso!'}, status=status.HTTP_204_NO_CONTENT)
 
 class SensorUploadView(APIView):
-    # permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]  # Descomente se necessário
     parser_classes = (MultiPartParser, FormParser)
-
+    
     def post(self, request, *args, **kwargs):
         serializer = SensorUploadSerializer(data=request.data)
+        
         if serializer.is_valid():
-            # Salva os dados no banco
-            instance = serializer.save()
+            # Salva o upload do arquivo
+            sensor_upload = serializer.save()
 
-            print(f"Sensor: {instance.sensor_type}, Arquivo: {instance.csv_file.name}")
+            # Processar o arquivo CSV
+            sensor_type = sensor_upload.sensor_type
+            csv_file = sensor_upload.csv_file
+            data = csv_file.read().decode('utf-8')
+            csv_reader = csv.reader(StringIO(data))
 
-            return Response({"message": f"Upload realizado para o sensor {instance.sensor_type}!"}, status=status.HTTP_201_CREATED)
+            # Baseado no tipo de sensor, preenche o modelo correspondente
+            if sensor_type == 'Temperatura':
+                self._process_csv_for_temperatura(csv_reader, sensor_upload)
+            elif sensor_type == 'Umidade':
+                self._process_csv_for_umidade(csv_reader, sensor_upload)
+            elif sensor_type == 'Luminosidade':
+                self._process_csv_for_luminosidade(csv_reader, sensor_upload)
+            elif sensor_type == 'Contador':
+                self._process_csv_for_contador(csv_reader, sensor_upload)
+            else:
+                return Response({"error": "Tipo de sensor desconhecido!"}, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({"message": f"Upload realizado para o sensor {sensor_type}!"}, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def _process_csv_for_temperatura(self, csv_reader, sensor_upload):
+        for row in csv_reader:
+            try:
+                valor = float(row[0])  # Supondo que o valor está na primeira coluna
+                sensor = Sensor.objects.filter(tipo="Temperatura").first()  # Recuperar o sensor associado
+                if sensor:
+                    TemperaturaData.objects.create(valor=valor, sensor_id=sensor)
+            except ValueError:
+                raise ValidationError("Erro ao processar valor de Temperatura no CSV.")
+
+    def _process_csv_for_umidade(self, csv_reader, sensor_upload):
+        for row in csv_reader:
+            try:
+                valor = float(row[0])  # Supondo que o valor está na primeira coluna
+                sensor = Sensor.objects.filter(tipo="Umidade").first()  # Recuperar o sensor associado
+                if sensor:
+                    UmidadeData.objects.create(valor=valor, sensor_id=sensor)
+            except ValueError:
+                raise ValidationError("Erro ao processar valor de Umidade no CSV.")
+
+    def _process_csv_for_luminosidade(self, csv_reader, sensor_upload):
+        for row in csv_reader:
+            try:
+                valor = float(row[0])  # Supondo que o valor está na primeira coluna
+                sensor = Sensor.objects.filter(tipo="Luminosidade").first()  # Recuperar o sensor associado
+                if sensor:
+                    LuminosidadeData.objects.create(valor=valor, sensor_id=sensor)
+            except ValueError:
+                raise ValidationError("Erro ao processar valor de Luminosidade no CSV.")
+
+    def _process_csv_for_contador(self, csv_reader, sensor_upload):
+        for row in csv_reader:
+            try:
+                valor = int(row[0])  # Supondo que o valor está na primeira coluna
+                sensor = Sensor.objects.filter(tipo="Contador").first()  # Recuperar o sensor associado
+                if sensor:
+                    ContadorData.objects.create(valor=valor, sensor_id=sensor)
+            except ValueError:
+                raise ValidationError("Erro ao processar valor de Contador no CSV.")

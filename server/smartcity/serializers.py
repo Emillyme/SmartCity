@@ -51,4 +51,14 @@ class ContadorSerializer(serializers.ModelSerializer):
 class SensorUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = SensorUpload
-        fields = '__all__'
+        fields = ['sensor_id', 'csv_file', 'sensor_type']
+
+    def validate_sensor_type(self, value):
+        # Verifique se o tipo de sensor é válido
+        if value not in ['Temperatura', 'Umidade', 'Luminosidade', 'Contador']:  # Adapte isso para os tipos que você tiver
+            raise serializers.ValidationError("Tipo de sensor não suportado")
+        return value
+
+
+
+        
