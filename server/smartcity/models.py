@@ -24,27 +24,27 @@ class Sensor(models.Model):
 class TemperaturaData(models.Model):
     valor = models.FloatField()
     sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField()
     def str (self):
         return f"Temperatura - {self.valor} Celsius - {self.timestamp}"
     
 class UmidadeData(models.Model):
     sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
     valor = models.FloatField()
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField()
     def str (self):
         return f"Umidade - {self.valor} % - {self.timestamp}"
 
 class LuminosidadeData(models.Model):
     valor = models.FloatField()
     sensor= models.ForeignKey(Sensor, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField()
     def str (self):
         return f"Luminosidade - {self.valor} % - {self.timestamp}"
     
 class ContadorData(models.Model):
     sensor = models.ForeignKey(Sensor, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField()
     def str (self):
         return f"Contador - {self.valor} - {self.timestamp}"
     
@@ -57,7 +57,7 @@ class SensorUpload(models.Model):
     ]
     sensor_type = models.CharField(max_length=20, choices=SENSOR_TYPES)
     csv_file = models.FileField(upload_to='uploads/')
-    uploaded_at = models.DateTimeField(auto_now_add=True)
+    uploaded_at = models.DateTimeField()
     
     def __str__(self):
         return f"Sensor Upload - {self.sensor_type} - {self.uploaded_at}"

@@ -333,75 +333,76 @@ class ContadorDetailView(APIView):
         sensor.delete()
         return Response({'message': 'Sensor excluído com sucesso!'}, status=status.HTTP_204_NO_CONTENT)
 
-class SensorUploadView(APIView):
-    # permission_classes = [IsAuthenticated]  # Descomente se necessário
-    parser_classes = (MultiPartParser, FormParser)
-    
-    def post(self, request, *args, **kwargs):
-        serializer = SensorUploadSerializer(data=request.data)
-        
-        if serializer.is_valid():
-            # Salva o upload do arquivo
-            sensor_upload = serializer.save()
+from rest_framework.parsers import MultiPartParser, FormParser
+import csv
+from io import TextIOWrapper
+from datetime import datetime
 
-            # Processar o arquivo CSV
-            sensor_type = sensor_upload.sensor_type
-            csv_file = sensor_upload.csv_file
-            data = csv_file.read().decode('utf-8')
-            csv_reader = csv.reader(StringIO(data))
+class UploadCSVView(APIView):
+    permission_classes = [IsAuthenticated]  # Exige autenticação
+    parser_classes = [MultiPartParser, FormParser]
 
-            # Baseado no tipo de sensor, preenche o modelo correspondente
-            if sensor_type == 'Temperatura':
-                self._process_csv_for_temperatura(csv_reader, sensor_upload)
-            elif sensor_type == 'Umidade':
-                self._process_csv_for_umidade(csv_reader, sensor_upload)
-            elif sensor_type == 'Luminosidade':
-                self._process_csv_for_luminosidade(csv_reader, sensor_upload)
-            elif sensor_type == 'Contador':
-                self._process_csv_for_contador(csv_reader, sensor_upload)
-            else:
-                return Response({"error": "Tipo de sensor desconhecido!"}, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request):
+        sensor_type = request.data.get('sensor_type')
+        file = request.FILES.get('csv_file')
 
-            return Response({"message": f"Upload realizado para o sensor {sensor_type}!"}, status=status.HTTP_201_CREATED)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not sensor_type or not file:
+            return Response({'error': 'Tipo de sensor ou arquivo CSV não fornecido.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    def _process_csv_for_temperatura(self, csv_reader, sensor_upload):
-        for row in csv_reader:
-            try:
-                valor = float(row[0])  # Supondo que o valor está na primeira coluna
-                sensor = Sensor.objects.filter(tipo="Temperatura").first()  # Recuperar o sensor associado
-                if sensor:
-                    TemperaturaData.objects.create(valor=valor, sensor_id=sensor)
-            except ValueError:
-                raise ValidationError("Erro ao processar valor de Temperatura no CSV.")
+        # Determinar o modelo e o serializer
+        sensor_map = {
+            "Temperatura": (TemperaturaData, TemperaturaSerializer),
+            "Umidade": (UmidadeData, UmidadeSerializer),
+            "Luminosidade": (LuminosidadeData, LuminosidadeSerializer),
+            "Contador": (ContadorData, ContadorSerializer),
+        }
 
-    def _process_csv_for_umidade(self, csv_reader, sensor_upload):
-        for row in csv_reader:
-            try:
-                valor = float(row[0])  # Supondo que o valor está na primeira coluna
-                sensor = Sensor.objects.filter(tipo="Umidade").first()  # Recuperar o sensor associado
-                if sensor:
-                    UmidadeData.objects.create(valor=valor, sensor_id=sensor)
-            except ValueError:
-                raise ValidationError("Erro ao processar valor de Umidade no CSV.")
+        if sensor_type not in sensor_map:
+            return Response({'error': 'Tipo de sensor inválido.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    def _process_csv_for_luminosidade(self, csv_reader, sensor_upload):
-        for row in csv_reader:
-            try:
-                valor = float(row[0])  # Supondo que o valor está na primeira coluna
-                sensor = Sensor.objects.filter(tipo="Luminosidade").first()  # Recuperar o sensor associado
-                if sensor:
-                    LuminosidadeData.objects.create(valor=valor, sensor_id=sensor)
-            except ValueError:
-                raise ValidationError("Erro ao processar valor de Luminosidade no CSV.")
+        model, serializer_class = sensor_map[sensor_type]
 
-    def _process_csv_for_contador(self, csv_reader, sensor_upload):
-        for row in csv_reader:
-            try:
-                valor = int(row[0])  # Supondo que o valor está na primeira coluna
-                sensor = Sensor.objects.filter(tipo="Contador").first()  # Recuperar o sensor associado
-                if sensor:
-                    ContadorData.objects.create(valor=valor, sensor_id=sensor)
-            except ValueError:
-                raise ValidationError("Erro ao processar valor de Contador no CSV.")
+        try:
+            csv_file = TextIOWrapper(file.file, encoding='utf-8')
+            csv_reader = csv.DictReader(csv_file)
+
+            records = []
+            for row in csv_reader:
+                # Validar e processar os campos do CSV
+                sensor_id = row.get('sensor_id')
+                timestamp = row.get('timestamp')
+                valor = row.get('valor')  # Apenas para sensores que possuem valor
+
+                if not sensor_id or not timestamp:
+                    return Response({'error': 'CSV deve incluir sensor_id e timestamp.'}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Validar sensor
+                try:
+                    sensor = Sensor.objects.get(id=sensor_id)
+                except Sensor.DoesNotExist:
+                    return Response({'error': f'Sensor com ID {sensor_id} não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+                # Converter timestamp para objeto datetime
+                try:
+                    timestamp = datetime.fromisoformat(timestamp)
+                except ValueError:
+                    return Response({'error': f'Timestamp inválido: {timestamp}'}, status=status.HTTP_400_BAD_REQUEST)
+
+                # Preparar dados para o serializer
+                data = {
+                    'sensor': sensor.id,
+                    'timestamp': timestamp,
+                }
+                if valor:  # Apenas sensores com campo 'valor'
+                    data['valor'] = valor
+
+                serializer = serializer_class(data=data)
+                if serializer.is_valid():
+                    records.append(serializer.save())
+                else:
+                    return Response({'error': 'Erro ao processar linha do CSV.', 'details': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({'message': f'{len(records)} registros salvos com sucesso no sensor {sensor_type}.'}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({'error': 'Erro ao processar o arquivo CSV.', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

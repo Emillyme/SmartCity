@@ -1,5 +1,7 @@
 "use client";
+
 import { Share } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,51 +12,66 @@ import {
   DialogTrigger,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import do Select
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"; // Import do Select
 
 function Upload() {
   const [file, setFile] = useState<File | null>(null);
   const [selectedSensor, setSelectedSensor] = useState<string>("");
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files ? e.target.files[0] : null;
     if (selectedFile) {
+      if (selectedFile.type !== "text/csv") {
+        alert("Por favor, selecione um arquivo CSV válido!");
+        return;
+      }
       setFile(selectedFile);
     }
   };
 
   const handleUpload = async () => {
     if (!file || !selectedSensor) {
-      alert("Por favor, selecione um arquivo e um sensor!");
+      alert("Por favor, selecione um arquivo e um tipo de sensor!");
       return;
     }
-  
+
+    setIsUploading(true); // Indica que o upload está em andamento
+
     const formData = new FormData();
     formData.append("sensor_type", selectedSensor);
     formData.append("csv_file", file);
-    console.log("FormData enviado:", formData);
 
     try {
       const response = await fetch("http://127.0.0.1:8000/api/upload/", {
         method: "POST",
-        // headers: {
-        //   Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        // },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`, // Inclui o token JWT para autenticação
+        },
         body: formData,
       });
-  
+
       if (response.ok) {
         alert("Upload realizado com sucesso!");
+        setFile(null);
+        setSelectedSensor("");
       } else {
         const data = await response.json();
         alert(`Erro no upload: ${data.error || "Erro desconhecido"}`);
       }
     } catch (error) {
       console.error("Erro no upload:", error);
+      alert("Erro ao conectar com o servidor. Tente novamente mais tarde.");
+    } finally {
+      setIsUploading(false); // Conclui o upload
     }
   };
-  
 
   return (
     <>
@@ -65,23 +82,24 @@ function Upload() {
         </DialogTrigger>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>Upload files</DialogTitle>
+            <DialogTitle>Upload de Arquivos</DialogTitle>
             <DialogDescription>
-              Selecione o tipo de sensor e o arquivo CSV para o upload.
+              Selecione o tipo de sensor e o arquivo CSV para realizar o upload.
             </DialogDescription>
           </DialogHeader>
 
+          {/* Seleção do tipo de sensor */}
           <div>
             <label htmlFor="sensor_type">Selecione o tipo de sensor:</label>
             <Select onValueChange={setSelectedSensor}>
               <SelectTrigger className="w-full mt-2">
                 <SelectValue placeholder="Selecione o tipo de sensor" />
               </SelectTrigger>
-              <SelectContent >
-                <SelectItem className="cursor-pointer" value="Temperatura">Temperatura</SelectItem>
-                <SelectItem className="cursor-pointer" value="Umidade">Umidade</SelectItem>
-                <SelectItem className="cursor-pointer" value="Contador">Contador</SelectItem>
-                <SelectItem className="cursor-pointer" value="Luminosidade">Luminosidade</SelectItem>
+              <SelectContent>
+                <SelectItem value="Temperatura">Temperatura</SelectItem>
+                <SelectItem value="Umidade">Umidade</SelectItem>
+                <SelectItem value="Contador">Contador</SelectItem>
+                <SelectItem value="Luminosidade">Luminosidade</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -98,7 +116,9 @@ function Upload() {
 
           {/* Botão de upload */}
           <div className="mt-4 flex justify-end">
-            <Button onClick={handleUpload}>Enviar</Button>
+            <Button onClick={handleUpload} disabled={!file || !selectedSensor || isUploading}>
+              {isUploading ? "Enviando..." : "Enviar"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
