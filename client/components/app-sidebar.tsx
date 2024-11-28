@@ -34,7 +34,7 @@ const data = {
   navMain: [
     {
       title: "Temperatura",
-      url: "#",
+      url: "dashboard/temperatura",
       icon: ThermometerSun,
       isActive: false,
       items: [
@@ -50,7 +50,7 @@ const data = {
     },
     {
       title: "Umidade",
-      url: "#",
+      url: "dashboard/umidade/",
       icon: Droplet,
       items: [
         {
@@ -65,7 +65,7 @@ const data = {
     },
     {
       title: "Luminosidade",
-      url: "#",
+      url: "dashboard/luminosidade/",
       icon: Sun,
       items: [
         {
@@ -80,7 +80,7 @@ const data = {
     },
     {
       title: "Contador",
-      url: "#",
+      url: "dashboard/contador/",
       icon: ListOrdered,
       items: [
         {
@@ -109,12 +109,12 @@ const data = {
   projects: [
     {
       name: "Todos os Sensores",
-      url: "#",
+      url: "/dashboard/sensores/",
       icon: WalletCards,
     },
     {
       name: "Gráficos",
-      url: "#",
+      url: "dashboard/graficos/",
       icon: ChartSpline,
     },
   ],

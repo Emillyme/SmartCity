@@ -134,6 +134,7 @@ class SensorListView(generics.ListAPIView):
         
     permission_classes = [IsAuthenticated]  # Exige que o usuário esteja autenticado
     def get(self, request):
+        
         sensores = Sensor.objects.all()
         serializer = SensorSerializer(sensores, many=True)
         return Response(serializer.data)

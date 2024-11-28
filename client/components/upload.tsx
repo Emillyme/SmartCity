@@ -2,6 +2,8 @@
 
 import { Share } from "lucide-react";
 import { useState } from "react";
+import { motion } from "framer-motion";
+import { Toaster } from "@/components/ui/sonner"
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,11 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"; // Import do Select
+import { toast } from "sonner";
 
 function Upload() {
   const [file, setFile] = useState<File | null>(null);
   const [selectedSensor, setSelectedSensor] = useState<string>("");
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [alertVisible, setAlertVisible] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files ? e.target.files[0] : null;
@@ -58,7 +62,7 @@ function Upload() {
       });
 
       if (response.ok) {
-        alert("Upload realizado com sucesso!");
+        toast("Arquivo enviado com sucesso!");
         setFile(null);
         setSelectedSensor("");
       } else {
