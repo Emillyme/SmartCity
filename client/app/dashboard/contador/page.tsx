@@ -18,16 +18,16 @@ const getToken = () => {
   return token;
 };
 
-const ContadorPage = () => {
-  const [contador, setContador] = useState<any[]>([]);
+const TemperaturaPage = () => {
+  const [sensors, setSensors] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const fetchContador = async () => {
+    const fetchSensors = async () => {
       const token = getToken();
 
       try {
-        const response = await fetch("http://localhost:8000/api/contador/", {
+        const response = await fetch("http://localhost:8000/api/contadores/", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -37,11 +37,11 @@ const ContadorPage = () => {
         });
 
         if (!response.ok) {
-          throw new Error("Erro ao buscar sensores");
+          throw new Error("Erro ao buscar sensores de temperatura");
         }
 
         const data = await response.json();
-        setContador(data);
+        setSensors(data);
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
       } finally {
@@ -49,7 +49,7 @@ const ContadorPage = () => {
       }
     };
 
-    fetchContador();
+    fetchSensors();
   }, []);
 
   if (loading) {
@@ -58,20 +58,16 @@ const ContadorPage = () => {
 
   return (
     <div>
-      <h1>Lista de Sensores</h1>
+      <h1>Sensores de Contador</h1>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Valor</TableHead>
             <TableHead>Timestamp</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {contador.map((contador: any) => (
+          {sensors.map((contador: any) => (
             <TableRow key={contador.id}>
-              <TableCell>{contador.id || "N/A"}</TableCell>
-              <TableCell>{contador.valor || "Desconhecido"}</TableCell>
               <TableCell>{contador.timestamp || "N/A"}</TableCell>
             </TableRow>
           ))}
@@ -81,4 +77,4 @@ const ContadorPage = () => {
   );
 };
 
-export default ContadorPage;
+export default TemperaturaPage;

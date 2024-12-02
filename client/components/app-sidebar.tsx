@@ -34,7 +34,7 @@ const data = {
   navMain: [
     {
       title: "Temperatura",
-      url: "dashboard/temperatura",
+      url: "/dashboard/temperatura",
       icon: ThermometerSun,
       isActive: false,
       items: [
@@ -50,7 +50,7 @@ const data = {
     },
     {
       title: "Umidade",
-      url: "dashboard/umidade/",
+      url: "/dashboard/umidade/",
       icon: Droplet,
       items: [
         {
@@ -65,7 +65,7 @@ const data = {
     },
     {
       title: "Luminosidade",
-      url: "dashboard/luminosidade/",
+      url: "/dashboard/luminosidade/",
       icon: Sun,
       items: [
         {
@@ -80,7 +80,7 @@ const data = {
     },
     {
       title: "Contador",
-      url: "dashboard/contador/",
+      url: "/dashboard/contador/",
       icon: ListOrdered,
       items: [
         {
@@ -114,7 +114,7 @@ const data = {
     },
     {
       name: "Gráficos",
-      url: "dashboard/graficos/",
+      url: "/dashboard",
       icon: ChartSpline,
     },
   ],
@@ -129,7 +129,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#" className="font-bold">
+              <a href="/dashboard" className="font-bold">
                 <Image
                   src="/logo.png"
                   width={140}
