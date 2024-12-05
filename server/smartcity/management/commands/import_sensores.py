@@ -8,7 +8,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         # Caminho para o arquivo CSV
-        csv_file_path = r'C:\Users\ct67ca\Documents\SmartCity\server\smartcity\data\sensores.csv'  # Usando o caminho bruto (r'')
+        csv_file_path = r'C:\Users\58645769808.EDUC501\Desktop\SmartCity\server\smartcity\data\sensores.csv'  # Usando o caminho bruto (r'')
 
         # Verifica se o arquivo CSV existe
         if not os.path.exists(csv_file_path):
