@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,7 +20,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -28,7 +35,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns"; 
+import { format } from "date-fns";
+import { toast } from "sonner";
 
 const getToken = () => {
   const token = localStorage.getItem("accessToken");
@@ -41,30 +49,57 @@ const getToken = () => {
 const TemperaturaPage = () => {
   const [sensors, setSensors] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [sensorOptions, setSensorOptions] = useState<number[]>([]); // Lista de sensores disponíveis
   const [selectedSensorId, setSelectedSensorId] = useState<string>("1");
   const [newValue, setNewValue] = useState<string>(""); // Valor de umidade
-  const [newTimestamp, setNewTimestamp] = useState<Date | null>(null); // Altere o tipo para Date | null
+  const [newTimestamp, setNewTimestamp] = useState<Date | null>(null);
 
+  // Buscar sensores para popular a lista
   useEffect(() => {
     const fetchSensors = async () => {
       const token = getToken();
 
       try {
-        const response = await fetch("http://localhost:8000/api/umidade/", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          mode: "cors",
-        });
+        // Obter sensores de umidade
+        const umidadeResponse = await fetch(
+          "http://localhost:8000/api/umidade/",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            mode: "cors",
+          }
+        );
 
-        if (!response.ok) {
+        if (!umidadeResponse.ok) {
           throw new Error("Erro ao buscar sensores de umidade");
         }
 
-        const data = await response.json();
-        setSensors(data);
+        const umidadeData = await umidadeResponse.json();
+        setSensors(umidadeData);
+
+        // Obter sensores gerais
+        const sensoresResponse = await fetch(
+          "http://localhost:8000/api/sensores/",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            mode: "cors",
+          }
+        );
+
+        if (!sensoresResponse.ok) {
+          throw new Error("Erro ao buscar sensores");
+        }
+
+        const sensoresData = await sensoresResponse.json();
+        const sensorIds = sensoresData.map((sensor: any) => sensor.id); // Mapeia os IDs dos sensores
+        setSensorOptions(sensorIds);
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
       } finally {
@@ -95,6 +130,8 @@ const TemperaturaPage = () => {
 
       if (!response.ok) {
         throw new Error("Erro ao adicionar sensor de umidade");
+      } else {
+        toast.success("Sensor adicionado com sucesso!");
       }
 
       const newSensor = await response.json();
@@ -112,92 +149,91 @@ const TemperaturaPage = () => {
 
   return (
     <div>
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button>Adicionar Sensor</Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Adicionar sensor de umidade</DialogTitle>
-            <DialogDescription>
-              Preencha as informações do seu novo sensor.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="valor" className="text-right">
-                Valor:
-              </Label>
-              <Input id="valor" className="col-span-3" />
-            </div>
+      <div className="flex justify-between">
+        <h1 className="text-2xl font-bold mb-4">Sensores de Umidade</h1>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button>Adicionar Sensor</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Adicionar Sensor de Umidade</DialogTitle>
+              <DialogDescription>
+                Preencha as informações do seu novo sensor.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
 
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={`w-full justify-start ${
-                    !newTimestamp ? "text-muted-foreground" : ""
-                  }`}
-                >
-                  <CalendarIcon className="w-5 h-5 mr-2" />
-                  {newTimestamp
-                    ? format(newTimestamp, "PPP")
-                    : "Selecione uma data"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={newTimestamp}
-                  onSelect={setNewTimestamp}
-                  initialFocus
+              {/* Seleção do Sensor */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="sensor" className="text-right">
+                  Sensor ID:
+                </Label>
+                <Select onValueChange={setSelectedSensorId}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Escolha" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sensorOptions.map((id) => (
+                      <SelectItem key={id} value={id.toString()}>
+                        Sensor {id}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Campo de Valor */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="valor" className="text-right">
+                  Valor:
+                </Label>
+                <Input
+                  id="valor"
+                  value={newValue}
+                  onChange={(e) => setNewValue(e.target.value)}
+                  placeholder="Novo valor de umidade"
+                  className="col-span-3"
                 />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleAddSensor}>Adicionar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              </div>
 
-      <h1>Sensores de Umidade</h1>
-      <div>
-        <label>
-          Sensor ID:
-          <select
-            value={selectedSensorId}
-            onChange={(e) => setSelectedSensorId(e.target.value)}
-          >
-            <option value="1">Sensor 1</option>
-            <option value="2">Sensor 2</option>
-            <option value="3">Sensor 3</option>
-          </select>
-        </label>
-        <label>
-          Valor:
-          <input
-            type="text"
-            value={newValue}
-            onChange={(e) => setNewValue(e.target.value)}
-            placeholder="Novo valor de umidade"
-          />
-        </label>
-        <label>
-          Timestamp:
-          <input
-            type="datetime-local"
-            value={
-              newTimestamp
-                ? format(newTimestamp, "yyyy-MM-dd'T'HH:mm:ss")
-                : ""
-            }
-            onChange={(e) => setNewTimestamp(new Date(e.target.value))}
-            placeholder="YYYY-MM-DD HH:mm:ss"
-          />
-        </label>
-        <button onClick={handleAddSensor}>Adicionar</button>
+              {/* Campo de Timestamp */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="timestamp" className="text-right">
+                  Timestamp:
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`col-span-3 w-full justify-start ${
+                        !newTimestamp ? "text-muted-foreground" : ""
+                      }`}
+                    >
+                      <CalendarIcon className="w-5 h-5 mr-2" />
+                      {newTimestamp
+                        ? format(newTimestamp, "PPP")
+                        : "Selecione uma data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={newTimestamp ? newTimestamp : undefined}
+                      onSelect={setNewTimestamp as any}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleAddSensor}>Adicionar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
+
       <Table>
         <TableHeader>
           <TableRow>
