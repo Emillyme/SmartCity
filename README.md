@@ -6,7 +6,7 @@
 
 - **Backend**: Django e Django REST Framework
 - **Frontend**: Next.js, React, Tailwind CSS e Shadcn
-- **Banco de Dados**: SQLite (ou outro de sua escolha)
+- **Banco de Dados**: SQLite
 - **Autenticação**: JWT (JSON Web Tokens)
 
 ## Instalação
