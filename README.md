@@ -2,13 +2,6 @@
 
 **SmartCity** é um projeto que visa facilitar o gerenciamento e a visualização de sensores no Senai. Com este aplicativo, você pode facilmente adicionar, editar e remover sensores, permitindo um melhor monitoramento e gerenciamento de dados em tempo real.
 
-## Funcionalidades
-
-- **Visualizar Sensores**: Veja uma lista de todos os sensores cadastrados.
-- **Adicionar Sensores**: Insira novos sensores ao sistema com informações detalhadas.
-- **Editar Sensores**: Atualize as informações dos sensores existentes.
-- **Deletar Sensores**: Remova sensores que não são mais necessários.
-
 ## Tecnologias Utilizadas
 
 - **Backend**: Django e Django REST Framework
